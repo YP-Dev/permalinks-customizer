@@ -46,10 +46,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-function permalinks_customizer_settings_link($links) { 
-   $settings_link = '<a href="admin.php?page=permalinks-customizer-settings">Settings</a>'; 
-   array_unshift($links, $settings_link); 
-   return $links; 
+function permalinks_customizer_settings_link($links) {
+   $settings_link = '<a href="admin.php?page=permalinks-customizer-settings">Settings</a>';
+   array_unshift($links, $settings_link);
+   return $links;
 }
 
 function permalinks_customizer_menu() {
@@ -70,7 +70,7 @@ function register_permalinks_customizer_settings() {
    }
 }
 
-function permalinks_customizer_options_page() {   
+function permalinks_customizer_options_page() {
    $post_types = get_post_types( '', 'objects' );
    echo '<div class="wrap">';
    echo '<h2>Set Your Permalinks Settings</h2>';
@@ -94,7 +94,7 @@ function permalinks_customizer_options_page() {
    }
    echo '</table>';
    echo '<p><b>Note:</b> Use trailing slash only if it has been set in the <a href="options-permalink.php">permalink structure</a>.</p>';
-   submit_button(); 
+   submit_button();
    echo '</form>';
    echo '</div>';
 }
@@ -108,40 +108,35 @@ function permalinks_customizer_customization($post_id, $post, $update) {
       $get_permalink = esc_attr( get_option('permalink_structure') );
    }
    if ($post->post_status == 'publish') {
-      $url = get_post_meta($post_id, 'permalink_customizer');
-      if(empty($url)){
-         $set_permalink = permalinks_customizer_replace_tags($post_id, $post, $get_permalink);
-         global $wpdb;
-         $permalink = $set_permalink;
-         $trailing_slash = substr($permalink, -1);
-         if($trailing_slash == '/'){
-            $permalink = rtrim($permalink, '/');
-            $set_permalink = rtrim($set_permalink, '/');
-         }
-         $qry = "SELECT * FROM $wpdb->postmeta WHERE meta_key = 'permalink_customizer' AND meta_value = '".$permalink."' AND post_id != ".$post_id." OR meta_key = 'permalink_customizer' AND meta_value = '".$permalink."/' AND post_id != ".$post_id." LIMIT 1";
-         $check_exist_url = $wpdb->get_results($qry);
-         if(!empty($check_exist_url)){
-            $i = 2;
-            while(1){
-               $permalink = $set_permalink.'-'.$i;
-               $qry = "SELECT * FROM $wpdb->postmeta WHERE meta_key = 'permalink_customizer' AND meta_value = '".$permalink."' AND post_id != ".$post_id." OR meta_key = 'permalink_customizer' AND meta_value = '".$permalink."/' AND post_id != ".$post_id." LIMIT 1";
-               $check_exist_url = $wpdb->get_results($qry);
-               if(empty($check_exist_url)){
-                  break;
-               }
-               $i++;
-            }
-         }
-         if($trailing_slash == '/'){
-            $permalink = $permalink.'/';
-         }
-         if(strpos($permalink, "/") == 0){
-            $permalink = substr($permalink, 1);
-         }
-         update_post_meta($post_id, 'permalink_customizer', $permalink);
-      }else{
-         update_post_meta($post_id, 'permalink_customizer', $_REQUEST['permalinks_customizer']);
+      $set_permalink = permalinks_customizer_replace_tags($post_id, $post, $get_permalink);
+      global $wpdb;
+      $permalink = $set_permalink;
+      $trailing_slash = substr($permalink, -1);
+      if($trailing_slash == '/'){
+         $permalink = rtrim($permalink, '/');
+         $set_permalink = rtrim($set_permalink, '/');
       }
+      $qry = "SELECT * FROM $wpdb->postmeta WHERE meta_key = 'permalink_customizer' AND meta_value = '".$permalink."' AND post_id != ".$post_id." OR meta_key = 'permalink_customizer' AND meta_value = '".$permalink."/' AND post_id != ".$post_id." LIMIT 1";
+      $check_exist_url = $wpdb->get_results($qry);
+      if(!empty($check_exist_url)){
+         $i = 2;
+         while(1){
+            $permalink = $set_permalink.'-'.$i;
+            $qry = "SELECT * FROM $wpdb->postmeta WHERE meta_key = 'permalink_customizer' AND meta_value = '".$permalink."' AND post_id != ".$post_id." OR meta_key = 'permalink_customizer' AND meta_value = '".$permalink."/' AND post_id != ".$post_id." LIMIT 1";
+            $check_exist_url = $wpdb->get_results($qry);
+            if(empty($check_exist_url)){
+               break;
+            }
+            $i++;
+         }
+      }
+      if($trailing_slash == '/'){
+         $permalink = $permalink.'/';
+      }
+      if(strpos($permalink, "/") == 0){
+         $permalink = substr($permalink, 1);
+      }
+      update_post_meta($post_id, 'permalink_customizer', $permalink);
    }else{
       permalinks_customizer_delete_permalink($post_id);
    }
@@ -209,6 +204,10 @@ function permalinks_customizer_tags_page(){
                 <th scope="row">%author%</th>
                 <td>A sanitized version of the author name.</td>
              </tr>';
+   $html .= '<tr valign="top">
+                <th scope="row">%category-permalink%</th>
+                <td>A sanitized version of the category permalink (category permalink field on New/Edit Category panel).</td>
+             </tr>';
    $html .= '</table>';
    $html .= '<p><b>Note:</b> "%postname%" is similar as of the "%title%" tag but the difference is that "%postname%" can only be set once whereas "%title%" can be changed. let&#039;s say the title is "This Is A Great Post!" so, it becomes "this-is-a-great-post" in the URI(At the first time, "%postname%" and "%title%" works same) but if you edit and change title let&#039;s say "This Is A WordPress Post!" so, "%postname%" in the URI remains same "this-is-a-great-post" whereas "%title%" in the URI becomes "this-is-a-wordpress-post" </p>';
    $html .= '</div>';
@@ -224,7 +223,7 @@ function permalinks_customizer_post_link($permalink, $post) {
    if ( $permalinks_customizer ) {
       return home_url()."/".$permalinks_customizer;
    }
-  
+
    return $permalink;
 }
 
@@ -233,18 +232,18 @@ function permalinks_customizer_page_link($permalink, $page) {
    if ( $permalinks_customizer ) {
       return home_url()."/".$permalinks_customizer;
    }
-  
+
    return $permalink;
 }
 
 function permalinks_customizer_redirect() {
-   $url = parse_url(get_bloginfo('url')); 
+   $url = parse_url(get_bloginfo('url'));
    $url = isset($url['path']) ? $url['path'] : '';
    $request = ltrim(substr($_SERVER['REQUEST_URI'], strlen($url)),'/');
    if ( ($pos=strpos($request, "?")) ) $request = substr($request, 0, $pos);
-  
+
    global $wp_query;
-  
+
    $permalinks_customizer = '';
    $original_permalink = '';
 
@@ -264,12 +263,12 @@ function permalinks_customizer_redirect() {
          $url = preg_replace('@//*@', '/', str_replace(trim($original_permalink,'/'), trim($permalinks_customizer,'/'), $request));
          $url = preg_replace('@([^?]*)&@', '\1?', $url);
       }
-    
+
       $url .= strstr($_SERVER['REQUEST_URI'], "?");
-    
+
       wp_redirect( home_url()."/".$url, 301 );
       exit();
-   } 
+   }
 }
 
 function permalinks_customizer_request($query) {
@@ -282,7 +281,7 @@ function permalinks_customizer_request($query) {
    $request = (($pos=strpos($request, '?')) ? substr($request, 0, $pos) : $request);
    $request_noslash = preg_replace('@/+@','/', trim($request, '/'));
    if ( !$request ) return $query;
-      $sql = $wpdb->prepare("SELECT $wpdb->posts.ID, $wpdb->postmeta.meta_value, $wpdb->posts.post_type FROM $wpdb->posts  ".
+      $sql = $wpdb->prepare("SELECT $wpdb->posts.ID, $wpdb->postmeta.meta_value, $wpdb->posts.post_type, $wpdb->posts.post_status FROM $wpdb->posts  ".
               "LEFT JOIN $wpdb->postmeta ON ($wpdb->posts.ID = $wpdb->postmeta.post_id) WHERE ".
               "  meta_key = 'permalink_customizer' AND ".
               "  meta_value != '' AND ".
@@ -298,9 +297,9 @@ function permalinks_customizer_request($query) {
             );
    $posts = $wpdb->get_results($sql);
    if ( $posts ) {
-      if ( $request_noslash == trim($posts[0]->meta_value,'/') ) 
+      if ( $request_noslash == trim($posts[0]->meta_value,'/') )
          $_CPRegisteredURL = $request;
-      
+
       if ( $posts[0]->post_status == 'draft' ) {
         if( $posts[0]->post_type == 'page' ) {
           $originalUrl = "?page_id=" . $posts[0]->ID;
@@ -309,8 +308,8 @@ function permalinks_customizer_request($query) {
         }
       } else {
         $originalUrl =  preg_replace( '@/+@', '/', str_replace( trim( strtolower($posts[0]->meta_value),'/' ),
-                      ( $posts[0]->post_type == 'page' ? 
-                      permalinks_customizer_original_page_link($posts[0]->ID) 
+                      ( $posts[0]->post_type == 'page' ?
+                      permalinks_customizer_original_page_link($posts[0]->ID)
                       : permalinks_customizer_original_post_link($posts[0]->ID) ),
                       strtolower($request_noslash) ) );
       }
@@ -321,7 +320,7 @@ function permalinks_customizer_request($query) {
       foreach ( array_keys($table) as $permalink ) {
          if ( $permalink == substr($request_noslash, 0, strlen($permalink)) || $permalink == substr($request_noslash."/", 0, strlen($permalink)) ) {
             $term = $table[$permalink];
-            if ( $request_noslash == trim($permalink,'/') ) 
+            if ( $request_noslash == trim($permalink,'/') )
                $_CPRegisteredURL = $request;
             if ( $term['kind'] == 'category') {
                $originalUrl = str_replace(trim($permalink,'/'), permalinks_customizer_original_category_link($term['id']), trim($request,'/'));
@@ -333,7 +332,7 @@ function permalinks_customizer_request($query) {
   }
   if ( $originalUrl !== NULL ) {
     $originalUrl = str_replace('//', '/', $originalUrl);
-    
+
     if ( ($pos=strpos($_SERVER['REQUEST_URI'], '?')) !== false ) {
       $queryVars = substr($_SERVER['REQUEST_URI'], $pos+1);
       $originalUrl .= (strpos($originalUrl, '?') === false ? '?' : '&') . $queryVars;
@@ -365,7 +364,7 @@ function permalinks_customizer_request($query) {
 function permalinks_customizer_get_sample_permalink_html($html, $id, $new_title, $new_slug) {
    $permalink = get_post_meta( $id, 'permalink_customizer', true );
    $post = get_post($id);
-  
+
    ob_start();
    ?>
    <?php permalinks_customizer_form($permalink, ($post->post_type == "page" ? permalinks_customizer_original_page_link($id) : permalinks_customizer_original_post_link($id)), false); ?>
@@ -378,7 +377,7 @@ function permalinks_customizer_get_sample_permalink_html($html, $id, $new_title,
    if ( 'publish' == $post->post_status ) {
       $view_post = 'page' == $post->post_type ? __('View Page', 'permalinks-customizer') : __('View '.ucfirst($post->post_type), 'permalinks-customizer');
    }
-  
+
    if ( preg_match("@view-post-btn.*?href='([^']+)'@s", $html, $matches) ) {
       $permalink = $matches[1];
    } else {
@@ -458,7 +457,7 @@ function permalinks_customizer_save_tag($id) {
    $newPermalink = ltrim(stripcslashes($_REQUEST['permalinks_customizer']),"/");
 
    if ( $newPermalink == permalinks_customizer_original_tag_link($id) )
-      $newPermalink = ''; 
+      $newPermalink = '';
 
    $term = get_term($id, 'post_tag');
    permalinks_customizer_save_term($term, str_replace('%2F', '/', urlencode($newPermalink)));
@@ -467,11 +466,21 @@ function permalinks_customizer_save_tag($id) {
 function permalinks_customizer_save_category($id) {
    if ( !isset($_REQUEST['permalinks_customizer_edit']) || isset($_REQUEST['post_ID']) ) return;
    $newPermalink = ltrim(stripcslashes($_REQUEST['permalinks_customizer']),"/");
-  
+
    if ( $newPermalink == permalinks_customizer_original_category_link($id) )
-      $newPermalink = ''; 
-  
+      $newPermalink = '';
+
    $term = get_term($id, 'category');
+
+   /**
+    * Filters create permalink when category saved.
+    *
+    * @param string $newPermalink permalink
+    * @param WP_Term $term category object
+    * @return string the permalink which is filtered
+    */
+   $newPermalink = apply_filters('permalinks_customizer_save_category', $newPermalink, $term);
+
    permalinks_customizer_save_term($term, str_replace('%2F', '/', urlencode($newPermalink)));
 }
 
@@ -480,7 +489,7 @@ function permalinks_customizer_save_term($term, $permalink) {
    $table = get_option('permalinks_customizer_table');
    if ( $permalink )
       $table[$permalink] = array(
-                              'id' => $term->term_id, 
+                              'id' => $term->term_id,
                               'kind' => ($term->taxonomy == 'category' ? 'category' : 'tag'),
                               'slug' => $term->slug
                            );
@@ -497,11 +506,11 @@ function permalinks_customizer_delete_term($id) {
          break;
       }
    }
-  
+
   update_option('permalinks_customizer_table', $table);
 }
 
-function permalinks_customizer_trailingslash($string, $type) {     
+function permalinks_customizer_trailingslash($string, $type) {
   global $_CPRegisteredURL;
 
   $url = parse_url(get_bloginfo('url'));
@@ -523,7 +532,7 @@ function permalinks_customizer_form($permalink, $original="", $renderContainers=
    ?>
    <input value="true" type="hidden" name="permalinks_customizer_edit" />
    <input value="<?php echo htmlspecialchars(urldecode($permalink)) ?>" type="hidden" name="permalinks_customizer" id="permalinks_customizer" />
-  
+
    <?php if ( $renderContainers ) : ?>
    <table class="form-table" id="permalinks_customizer_form">
    <tr>
@@ -540,7 +549,7 @@ function permalinks_customizer_form($permalink, $original="", $renderContainers=
   <?php if ( $renderContainers ) : ?>
       <br />
       <small><?php _e('Leave blank to disable', 'permalinks-customizer') ?></small>
-      
+
     </td>
   </tr>
   </table>
@@ -582,30 +591,27 @@ function permalinks_customizer_replace_tags($post_id, $post, $replace_tag){
       $replace_tag = str_replace('%post_id%', $post_id, $replace_tag);
    }
    if(strpos($replace_tag, "%postname%") !== false ){
-      $replace_tag = str_replace('%postname%', $post->post_name, $replace_tag);
+      /**
+       * Filters replace postname tag.
+       *
+       * @param string $replaced_tag replaced_tag after replacing
+       * @param string $slug post slug
+       * @param int $post_id post ID
+       * @param WP_Post post object
+       * @param string $replace_tag permalink
+       * @return string replace_tag after replacing
+       */
+      $replace_tag = apply_filters(
+          'permalinks_customizer_replace_postname_tag',
+          str_replace('%postname%', $post->post_name, $replace_tag),
+          $post->post_name,
+          $post_id,
+          $post,
+          $replace_tag
+      );
    }
    if(strpos($replace_tag, "%category%") !== false ){
-      $categories = get_the_category($post_id);
-      $total_cat = count($categories);
-      $tid = 1;
-      if($total_cat > 0){
-         $tid = '';
-         foreach($categories as $cat){
-            if($cat->term_id < $tid || empty($tid)){
-               $tid = $cat->term_id;
-               $pid = '';
-               if(!empty($cat->parent)){
-                  $pid = $cat->parent;
-               }
-            }
-         }         
-      }
-      $term_category = get_term($tid);
-      $category = $term_category->slug;
-      if(!empty($pid)){
-         $parent_category = get_term($pid);
-         $category = $parent_category->slug.'/'.$category;
-      }
+      $category = permalinks_customizer_create_category_link($post_id, $post);
       $replace_tag = str_replace('%category%', $category, $replace_tag);
    }
    if(strpos($replace_tag, "%child-category%") !== false ){
@@ -638,7 +644,7 @@ function permalinks_customizer_replace_tags($post_id, $post, $replace_tag){
                   $pid = $cat->parent;
                }
             }
-         }         
+         }
       }
       $term_category = get_term($tid);
       $category = $term_category->slug;
@@ -652,7 +658,48 @@ function permalinks_customizer_replace_tags($post_id, $post, $replace_tag){
       $author = get_the_author_meta( 'user_login', $post->post_author );
       $replace_tag = str_replace('%author%', $author, $replace_tag);
    }
+   // add new tag "%category-permalink%"
+   // use permalink of the category
+   if (strpos($replace_tag, "%category-permalink%") !== false) {
+       $category_permalink = '';
+       $categories = get_the_category($post_id);
+
+       if ($categories) {
+           $categories = wp_list_sort( $categories, array('term_id' => 'ASC') );
+
+           $category_object = apply_filters( 'post_link_category', $categories[0], $categories, $post );
+           $category_object = get_term( $category_object, 'category' );
+
+           $category_permalink = untrailingslashit(permalinks_customizer_permalink_for_term($category_object->term_id));
+
+           if (empty($category_permalink)) {
+               $category_permalink = permalinks_customizer_create_category_link($post_id, $post);
+           }
+       }
+       $replace_tag = str_replace('%category-permalink%', $category_permalink, $replace_tag);
+   }
    return $replace_tag;
+}
+
+function permalinks_customizer_create_category_link($post_id, $post)
+{
+    $category = '';
+    $categories = get_the_category($post_id);
+
+    if ($categories) {
+        $categories = wp_list_sort( $categories, array('term_id' => 'ASC') );
+
+        $category_object = apply_filters( 'post_link_category', $categories[0], $categories, $post );
+
+        $category_object = get_term( $category_object, 'category' );
+        $category = $category_object->slug;
+
+        if ( $parent = $category_object->parent ) {
+            $category = get_category_parents($parent, false, '/', true) . $category;
+        }
+    }
+
+    return $category;
 }
 
 function permalinks_customizer_original_post_link($post_id) {
@@ -682,7 +729,7 @@ function permalinks_customizer_convert_url() {
       if ( isset($data) && !empty($data) ) {
          $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->postmeta SET meta_key = 'permalink_customizer' where meta_id = %d ", $data->meta_id) );
          echo '<p>The batch update routine has started. Please be patient as this may take some time to complete <img class="conversion-in-process" src="'.includes_url( 'images/spinner-2x.gif' ).'" alt="Loading..." ) width="20px" height="20px" style="vertical-align:bottom" /></p>';
-         echo '<p class="processing"><strong>Converting '.(int) $step.' out of '.(int) $steps.' custom permalinks</strong></p>'; 
+         echo '<p class="processing"><strong>Converting '.(int) $step.' out of '.(int) $steps.' custom permalinks</strong></p>';
          ?>
          <script type="text/javascript">
             jQuery(document).ready(function($){
@@ -705,8 +752,8 @@ function permalinks_customizer_convert_url() {
                window.location = window.location.pathname="?page=permalinks-customizer-convert-url&processed=<?php echo $step; ?>&no-permalink=1";
             });
          </script>
-<?php } 
-   else : 
+<?php }
+   else :
       if( $_GET["no-permalink"] == 1 ) {
          $completed = $_GET["processed"] - 1;
          $cat_data = $wpdb->get_row( "SELECT option_id from $wpdb->options where option_name LIKE '%custom_permalink_table%' " );
@@ -721,7 +768,7 @@ function permalinks_customizer_convert_url() {
          }
          echo '<div class="updated"><p>'. $_GET["processed"] .' <strong>Custom Permalink</strong> have been converted to <strong>Permalink Customizer</strong> successfully.</p></div>';
       }
-      echo '<p>Click on the "Convert Permalink" button to convert custom permalink to Permalink Customizer. By doing this, all of your previous permalink which was created by custom permalink plugin would be converted to Permalink Customizer.</p>'; 
+      echo '<p>Click on the "Convert Permalink" button to convert custom permalink to Permalink Customizer. By doing this, all of your previous permalink which was created by custom permalink plugin would be converted to Permalink Customizer.</p>';
       echo '<form id="permalinks-customizer-convert-url" method="get" action="'.add_query_arg( 'page', 'permalinks-customizer-convert-url' ).'">';
       echo '<input type="hidden" name="page" value="'.$plugin_slug.'" />';
       echo '<input type="hidden" name="processing" value="1" />';
@@ -752,7 +799,7 @@ if (function_exists("add_action") && function_exists("add_filter")) {
       add_action( 'update_option_page_on_front', 'permalinks_customizer_static_page', 10, 2 );
       add_action( 'edit_page_form', 'permalinks_customizers_page_options' );
    }
-   
+
    add_action( 'edit_tag_form', 'permalinks_customizer_term_options' );
    add_action( 'add_tag_form', 'permalinks_customizer_term_options' );
    add_action( 'edit_category_form', 'permalinks_customizer_term_options' );
@@ -766,6 +813,6 @@ if (function_exists("add_action") && function_exists("add_filter")) {
    add_action( 'delete_post_category', 'permalinks_customizer_delete_term' );
    add_action( 'admin_menu', 'permalinks_customizer_menu' );
 
-   $plugin = plugin_basename(__FILE__); 
+   $plugin = plugin_basename(__FILE__);
    add_filter( "plugin_action_links_$plugin", 'permalinks_customizer_settings_link' );
 }
