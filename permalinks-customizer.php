@@ -289,6 +289,7 @@ function permalinks_customizer_request($query)
     global $wpdb;
     global $_CPRegisteredURL;
     $originalUrl = null;
+    $term = null;
     $url = parse_url(get_bloginfo('url'));
     $url = isset($url['path']) ? $url['path'] : '';
     $request = ltrim(substr($_SERVER['REQUEST_URI'], strlen($url)), '/');
@@ -297,6 +298,7 @@ function permalinks_customizer_request($query)
     if (!$request) {
         return $query;
     }
+
     $sql = $wpdb->prepare("SELECT $wpdb->posts.ID, $wpdb->postmeta.meta_value, $wpdb->posts.post_type, $wpdb->posts.post_status FROM $wpdb->posts  ".
               "LEFT JOIN $wpdb->postmeta ON ($wpdb->posts.ID = $wpdb->postmeta.post_id) WHERE ".
               "  meta_key = 'permalink_customizer' AND ".
@@ -312,6 +314,7 @@ function permalinks_customizer_request($query)
                $request_noslash."/"
             );
     $posts = $wpdb->get_results($sql);
+
     if ($posts) {
         if ($request_noslash == trim($posts[0]->meta_value, '/')) {
             $_CPRegisteredURL = $request;
@@ -350,6 +353,7 @@ function permalinks_customizer_request($query)
             }
         }
     }
+
     if ($originalUrl !== null) {
         $originalUrl = str_replace('//', '/', $originalUrl);
 
@@ -370,6 +374,7 @@ function permalinks_customizer_request($query)
             }
         }
         remove_filter('request', 'permalinks_customizer_request', 'edit_files', 1);
+
         global $wp;
         $wp->parse_request();
         $query = $wp->query_vars;
@@ -378,6 +383,12 @@ function permalinks_customizer_request($query)
         $_SERVER['QUERY_STRING'] = $oldQueryString;
         foreach ($oldValues as $key => $value) {
             $_REQUEST[$key] = $value;
+        }
+
+        if (!is_null($term) && $term['kind'] === 'category') {
+            unset($query['name']);
+            unset($query['pagename']);
+            $query['category_name'] = permalinks_customizer_category_slug_tree($term['id'], '/');
         }
     }
 
@@ -441,9 +452,9 @@ function permalinks_customizer_term_options($object)
 function permalinks_customizer_original_tag_link($tag_id)
 {
     remove_filter('tag_link', 'permalinks_customizer_term_link', 'edit_files', 2);
-    remove_filter('user_trailingslashit', 'permalinks_customizer_trailingslash', 'edit_files', 2);
+    // remove_filter('user_trailingslashit', 'permalinks_customizer_trailingslash', 'edit_files', 2);
     $originalPermalink = ltrim(str_replace(home_url(), '', get_tag_link($tag_id)), '/');
-    add_filter('user_trailingslashit', 'permalinks_customizer_trailingslash', 'edit_files', 2);
+    // add_filter('user_trailingslashit', 'permalinks_customizer_trailingslash', 'edit_files', 2);
     add_filter('tag_link', 'permalinks_customizer_term_link', 'edit_files', 2);
     return $originalPermalink;
 }
@@ -451,9 +462,9 @@ function permalinks_customizer_original_tag_link($tag_id)
 function permalinks_customizer_original_category_link($category_id)
 {
     remove_filter('category_link', 'permalinks_customizer_term_link', 'edit_files', 2);
-    remove_filter('user_trailingslashit', 'permalinks_customizer_trailingslash', 'edit_files', 2);
+    // remove_filter('user_trailingslashit', 'permalinks_customizer_trailingslash', 'edit_files', 2);
     $originalPermalink = ltrim(str_replace(home_url(), '', get_category_link($category_id)), '/');
-    add_filter('user_trailingslashit', 'permalinks_customizer_trailingslash', 'edit_files', 2);
+    // add_filter('user_trailingslashit', 'permalinks_customizer_trailingslash', 'edit_files', 2);
     add_filter('category_link', 'permalinks_customizer_term_link', 'edit_files', 2);
     return $originalPermalink;
 }
@@ -463,6 +474,14 @@ function permalinks_customizer_term_link($permalink, $term)
     $table = get_option('permalinks_customizer_table');
     if (is_object($term)) {
         $term = $term->term_id;
+    }
+
+    global $sitepress;
+
+    if (function_exists('icl_object_id') &&
+        $sitepress->get_default_language() !== $sitepress->get_current_language()
+    ) {
+        return $permalink;
     }
     $permalinks_customizer = permalinks_customizer_permalink_for_term($term);
     if ($permalinks_customizer) {
@@ -841,15 +860,33 @@ function permalinks_customizer_convert_url()
     echo '</div>';
 }
 
+function permalinks_customizer_category_slug_tree($id, $glue)
+{
+    $category = get_term($id, 'category');
+    $parent_category = $category->parent;
+
+    $cat_arr = [$category->slug];
+    while(!empty($parent_category))
+    {
+        $parent = get_term($parent_category, 'category');
+        $cat_arr[] = $parent->slug;
+        $parent_category = $parent->parent;
+    }
+
+    $cat_arr = array_reverse($cat_arr);
+
+    return implode($glue, $cat_arr);
+}
+
 if (function_exists("add_action") && function_exists("add_filter")) {
     add_action('template_redirect', 'permalinks_customizer_redirect', 5);
     add_filter('post_link', 'permalinks_customizer_post_link', 'edit_files', 2);
     add_filter('post_type_link', 'permalinks_customizer_post_link', 'edit_files', 2);
     add_filter('page_link', 'permalinks_customizer_page_link', 'edit_files', 2);
     add_filter('tag_link', 'permalinks_customizer_term_link', 'edit_files', 2);
-    add_filter('category_link', 'permalinks_customizer_term_link', 'edit_files', 2);
+    add_filter('category_link', 'permalinks_customizer_term_link', 0, 2);
     add_filter('request', 'permalinks_customizer_request', 'edit_files', 1);
-    add_filter('user_trailingslashit', 'permalinks_customizer_trailingslash', 'edit_files', 2);
+    // add_filter('user_trailingslashit', 'permalinks_customizer_trailingslash', 'edit_files', 2);
 
     if (function_exists("get_bloginfo")) {
         $v = explode('.', get_bloginfo('version'));
