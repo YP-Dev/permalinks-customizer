@@ -121,7 +121,7 @@ function permalinks_customizer_customization($post_id, $post, $update)
             $permalink = rtrim($permalink, '/');
             $set_permalink = rtrim($set_permalink, '/');
         }
-        $qry = "SELECT * FROM $wpdb->postmeta WHERE meta_key = 'permalink_customizer' AND meta_value = '".$permalink."' AND post_id != ".$post_id." OR meta_key = 'permalink_customizer' AND meta_value = '".$permalink."/' AND post_id != ".$post_id." LIMIT 1";
+        $qry = "SELECT * FROM $wpdb->postmeta WHERE meta_key = 'permalink_customizer' AND meta_value = '".$permalink."' AND post_id != ".$post_id." OR meta_key = 'permalink_customizer' AND meta_value = '".$permalink."/' AND post_id != ".$post_id." AND post_name != ".$post->post_name." LIMIT 1";
         $check_exist_url = $wpdb->get_results($qry);
         if (!empty($check_exist_url)) {
             $i = 2;
@@ -230,7 +230,7 @@ function permalinks_customizer_post_link($permalink, $post)
 {
     $permalinks_customizer = get_post_meta($post->ID, 'permalink_customizer', true);
     if ($permalinks_customizer) {
-        return home_url()."/".$permalinks_customizer;
+        return home_url($permalinks_customizer);
     }
 
     return $permalink;
@@ -240,7 +240,7 @@ function permalinks_customizer_page_link($permalink, $page)
 {
     $permalinks_customizer = get_post_meta($page, 'permalink_customizer', true);
     if ($permalinks_customizer) {
-        return home_url()."/".$permalinks_customizer;
+        return home_url($permalinks_customizer);
     }
 
     return $permalink;
@@ -279,13 +279,17 @@ function permalinks_customizer_redirect()
 
         $url .= strstr($_SERVER['REQUEST_URI'], "?");
 
-        wp_redirect(home_url()."/".$url, 301);
+        wp_redirect(home_url($url), 301);
         exit();
     }
 }
 
 function permalinks_customizer_request($query)
 {
+    if (is_admin()) {
+        return $query;
+    }
+
     global $wpdb;
     global $_CPRegisteredURL;
     $originalUrl = null;
@@ -476,16 +480,9 @@ function permalinks_customizer_term_link($permalink, $term)
         $term = $term->term_id;
     }
 
-    global $sitepress;
-
-    if (function_exists('icl_object_id') &&
-        $sitepress->get_default_language() !== $sitepress->get_current_language()
-    ) {
-        return $permalink;
-    }
     $permalinks_customizer = permalinks_customizer_permalink_for_term($term);
     if ($permalinks_customizer) {
-        return home_url()."/".$permalinks_customizer;
+        return home_url($permalinks_customizer);
     }
     return $permalink;
 }
