@@ -121,13 +121,13 @@ function permalinks_customizer_customization($post_id, $post, $update)
             $permalink = rtrim($permalink, '/');
             $set_permalink = rtrim($set_permalink, '/');
         }
-        $qry = "SELECT * FROM $wpdb->postmeta WHERE meta_key = 'permalink_customizer' AND meta_value = '".$permalink."' AND post_id != ".$post_id." OR meta_key = 'permalink_customizer' AND meta_value = '".$permalink."/' AND post_id != ".$post_id." AND post_name != ".$post->post_name." LIMIT 1";
+        $qry = "SELECT * FROM $wpdb->postmeta AS pm JOIN $wpdb->posts AS p ON p.ID = pm.post_id WHERE pm.meta_key = 'permalink_customizer' AND pm.meta_value = '".$permalink."' AND pm.post_id != ".$post_id." OR pm.meta_key = 'permalink_customizer' AND pm.meta_value = '".$permalink."/' AND pm.post_id != ".$post_id." AND p.post_name != ".$post->post_name." LIMIT 1";
         $check_exist_url = $wpdb->get_results($qry);
         if (!empty($check_exist_url)) {
             $i = 2;
             while (1) {
                 $permalink = $set_permalink.'-'.$i;
-                $qry = "SELECT * FROM $wpdb->postmeta WHERE meta_key = 'permalink_customizer' AND meta_value = '".$permalink."' AND post_id != ".$post_id." OR meta_key = 'permalink_customizer' AND meta_value = '".$permalink."/' AND post_id != ".$post_id." LIMIT 1";
+                $qry = "SELECT * FROM $wpdb->postmeta AS pm JOIN $wpdb->posts AS p ON p.ID = pm.post_id WHERE pm.meta_key = 'permalink_customizer' AND pm.meta_value = '".$permalink."' AND pm.post_id != ".$post_id." OR pm.meta_key = 'permalink_customizer' AND pm.meta_value = '".$permalink."/' AND pm.post_id != ".$post_id." AND p.post_name != ".$post->post_name." LIMIT 1";
                 $check_exist_url = $wpdb->get_results($qry);
                 if (empty($check_exist_url)) {
                     break;
