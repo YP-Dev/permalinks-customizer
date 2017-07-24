@@ -344,7 +344,7 @@ function permalinks_customizer_request($query)
             return $query;
         }
         foreach (array_keys($table) as $permalink) {
-            if ($permalink == substr($request_noslash, 0, strlen($permalink)) || $permalink == substr($request_noslash."/", 0, strlen($permalink))) {
+            if ($permalink == $request_noslash || $permalink == $request_noslash."/") {
                 $term = $table[$permalink];
                 if ($request_noslash == trim($permalink, '/')) {
                     $_CPRegisteredURL = $request;
