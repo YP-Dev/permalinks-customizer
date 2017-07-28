@@ -358,7 +358,7 @@ function permalinks_customizer_request($query)
         }
     }
 
-    if ($originalUrl !== null) {
+    if ($originalUrl !== null && $originalUrl !== '') {
         $originalUrl = str_replace('//', '/', $originalUrl);
 
         if (($pos=strpos($_SERVER['REQUEST_URI'], '?')) !== false) {
