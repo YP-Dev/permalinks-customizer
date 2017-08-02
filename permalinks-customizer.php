@@ -338,13 +338,18 @@ function permalinks_customizer_request($query)
                       strtolower($request_noslash)));
         }
     }
+
     if ($originalUrl === null) {
         $table = get_option('permalinks_customizer_table');
         if (!$table) {
             return $query;
         }
         foreach (array_keys($table) as $permalink) {
-            if ($permalink == $request_noslash || $permalink == $request_noslash."/") {
+            $parma_noslash = trim($permalink, '/');
+            if ($permalink == $request_noslash ||
+                $permalink == $request_noslash."/" ||
+                preg_match('#^'.$parma_noslash.'/page/?([0-9]{1,})/?$#', $request_noslash)
+            ) {
                 $term = $table[$permalink];
                 if ($request_noslash == trim($permalink, '/')) {
                     $_CPRegisteredURL = $request;
