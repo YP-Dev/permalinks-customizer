@@ -345,11 +345,7 @@ function permalinks_customizer_request($query)
             return $query;
         }
         foreach (array_keys($table) as $permalink) {
-            $parma_noslash = trim($permalink, '/');
-            if ($permalink == $request_noslash ||
-                $permalink == $request_noslash."/" ||
-                preg_match('#^'.$parma_noslash.'/page/?([0-9]{1,})/?$#', $request_noslash)
-            ) {
+            if (permalinks_customizer_in_rewrite_rules($permalink, $request_noslash)) {
                 $term = $table[$permalink];
                 if ($request_noslash == trim($permalink, '/')) {
                     $_CPRegisteredURL = $request;
@@ -400,8 +396,30 @@ function permalinks_customizer_request($query)
             $query['category_name'] = permalinks_customizer_category_slug_tree($term['id'], '/');
         }
     }
-
+error_log("PC query result: ".var_export($query, true));
     return $query;
+}
+
+function permalinks_customizer_in_rewrite_rules($permalink, $request_noslash)
+{
+    global $wp_rewrite;
+    $rules = $wp_rewrite->wp_rewrite_rules();
+    $request_noslash = trim($request_noslash, '/');
+    $permalink = trim($permalink, '/');
+
+    $matched = false;
+
+    foreach ($rules as $regex => $expect) {
+        if (preg_match('#^'.$regex.'#', $request_noslash, $matches)) {
+            array_shift($matches);
+            if (in_array($permalink, $matches)) {
+                $matched = true;
+                break;
+            }
+        }
+    }
+
+    return $matched;
 }
 
 function permalinks_customizer_get_sample_permalink_html($html, $id, $new_title, $new_slug)
