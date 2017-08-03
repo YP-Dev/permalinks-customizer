@@ -396,7 +396,7 @@ function permalinks_customizer_request($query)
             $query['category_name'] = permalinks_customizer_category_slug_tree($term['id'], '/');
         }
     }
-error_log("PC query result: ".var_export($query, true));
+
     return $query;
 }
 
