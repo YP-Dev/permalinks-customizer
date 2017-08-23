@@ -540,10 +540,10 @@ function permalinks_customizer_save_tag($id)
 
 function permalinks_customizer_save_category($id)
 {
-    if (!isset($_REQUEST['permalinks_customizer_edit']) || isset($_REQUEST['post_ID'])) {
-        return;
+    $newPermalink = '';
+    if (isset($_REQUEST['permalinks_customizer_edit'])) {
+        $newPermalink = ltrim(stripcslashes($_REQUEST['permalinks_customizer']), "/");
     }
-    $newPermalink = ltrim(stripcslashes($_REQUEST['permalinks_customizer']), "/");
 
     if ($newPermalink == permalinks_customizer_original_category_link($id)) {
         $newPermalink = '';
