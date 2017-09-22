@@ -753,13 +753,19 @@ function permalinks_customizer_replace_tags($post_id, $post, $replace_tag)
         if ($categories) {
             $categories = wp_list_sort($categories, array('term_id' => 'ASC'));
 
-            $category_object = apply_filters('post_link_category', $categories[0], $categories, $post);
-            $category_object = get_term($category_object, 'category');
+            if (!is_array($categories)) {
+                $categories = [$categories];
+            }
 
-            $category_permalink = untrailingslashit(permalinks_customizer_permalink_for_term($category_object->term_id));
+            if ($categories[0]->term_id != 1) { // term_id == 1 はカテゴリーなし
+                $category_object = apply_filters('post_link_category', $categories[0], $categories, $post);
+                $category_object = get_term($category_object, 'category');
 
-            if (empty($category_permalink)) {
-                $category_permalink = permalinks_customizer_create_category_link($post_id, $post);
+                $category_permalink = untrailingslashit(permalinks_customizer_permalink_for_term($category_object->term_id));
+
+                if (empty($category_permalink)) {
+                    $category_permalink = permalinks_customizer_create_category_link($post_id, $post);
+                }
             }
         }
         $replace_tag = str_replace('%category-permalink%', $category_permalink, $replace_tag);
