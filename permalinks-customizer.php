@@ -921,14 +921,14 @@ if (function_exists("add_action") && function_exists("add_filter")) {
         add_filter('get_sample_permalink_html', 'permalinks_customizer_get_sample_permalink_html', 'edit_files', 4);
     } else {
         add_action('edit_form_advanced', 'permalinks_customizers_post_options');
-        add_action('update_option_page_on_front', 'permalinks_customizer_static_page', 10, 2);
+        add_action('update_option_page_on_front', 'permalinks_customizer_static_page', 900, 2);
         add_action('edit_page_form', 'permalinks_customizers_page_options');
     }
 
     add_action('edit_tag_form', 'permalinks_customizer_term_options');
     add_action('add_tag_form', 'permalinks_customizer_term_options');
     add_action('edit_category_form', 'permalinks_customizer_term_options');
-    add_action('save_post', 'permalinks_customizer_customization', 10, 3);
+    add_action('save_post', 'permalinks_customizer_customization', 20, 3);
     add_action('edited_post_tag', 'permalinks_customizer_save_tag');
     add_action('edited_category', 'permalinks_customizer_save_category');
     add_action('create_post_tag', 'permalinks_customizer_save_tag');
