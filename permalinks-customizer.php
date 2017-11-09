@@ -757,8 +757,9 @@ function permalinks_customizer_replace_tags($post_id, $post, $replace_tag)
                 $categories = [$categories];
             }
 
-            if ($categories[0]->term_id != 1) { // term_id == 1 はカテゴリーなし
-                $category_object = apply_filters('post_link_category', $categories[0], $categories, $post);
+            $category = apply_filters('permalinks_customizer_category_permalink_category', $categories[0]);
+            if ($category) {
+                $category_object = apply_filters('post_link_category', $category, $categories, $post);
                 $category_object = get_term($category_object, 'category');
 
                 $category_permalink = untrailingslashit(permalinks_customizer_permalink_for_term($category_object->term_id));
